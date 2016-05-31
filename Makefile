@@ -1,23 +1,30 @@
-SOURCE = ./src/eldo.cpp ./src/tools.cpp ./src/picontrol.cpp -lwiringPi
+APP = eldo-multicast
 SOURCE_STATIC = -lpthread
-APP = ./bin/eldo
-CC = g++
+CLIENT_SOURCE = ./src/eldo.cpp ./src/tools.cpp ./src/picontrol.cpp -lwiringPi
+SERVER_SOURCE = ./src/server.cpp
+CLIENT_APP = ./bin/eldo-client
+SERVER_APP = ./bin/eldo-server
+CC = g++ -Wall -W
 
 all: $(APP)
 
-$(APP): $(SOURCE)
+$(APP): $(CLIENT_SOURCE)
 	mkdir ./bin 2> /dev/null; chmod -R 755 *
-	$(CC) $(SOURCE) -o $(APP)
+	$(CC) $(CLIENT_SOURCE) -o $(CLIENT_APP)
+	$(CC) $(SERVER_SOURCE) -o $(SERVER_APP)
 
 static:
 	mkdir ./bin 2> /dev/null; chmod -R 755 *
-	$(CC) -static $(SOURCE) $(SOURCE_STATIC) -o $(APP)-static
-
+	$(CC) -static $(CLIENT_SOURCE) $(SOURCE_STATIC) -o $(CLIENT_APP)-static
+	$(CC) -static $(SERVER_SOURCE) -o $(SERVER_APP)-static
+	
 clean:
 	rm -r ./bin
 
 install:
-	cp $(APP) /bin/eldo
+	cp $(CLIENT_APP) /bin/eldo-client
+	cp $(SERVER_APP) /bin/eldo-server
 
 install-static:
-	cp $(APP)-static /bin/eldo
+	cp $(CLIENT_APP)-static /bin/eldo-client
+	cp $(SERVER_APP)-static /bin/eldo-server

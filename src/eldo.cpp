@@ -25,56 +25,163 @@ along with eldo.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <stdio.h>
 
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+
 #include "tools.h"
 #include "picontrol.h"
 
+#define BUF 1024
+
 using namespace std;
+
+static int datagpio;
+static int port = 2112;
+static struct ip_mreq command;
 
 string current_exec_name;
 
-void printInfo() {
-  std::cout << "try:" << std::endl;
-  std::cout << current_exec_name << " (gpio):(elro_code):(status [1|0])" << std::endl;
-  std::cout << current_exec_name << " 17:10101A:1" << std::endl;
+static int setup_multicast_socket(void) {
+  int loop = 1;
+  int socket_descriptor;
+  struct sockaddr_in sin;
+
+  memset(&sin, 0, sizeof(sin));
+
+  sin.sin_family = AF_INET;
+  sin.sin_addr.s_addr = htonl(INADDR_ANY);
+  sin.sin_port = htons(port);
+
+  if ((socket_descriptor = socket(PF_INET, SOCK_DGRAM, 0)) == -1) {
+     perror("socket()");
+     exit(EXIT_FAILURE);
+  }
+
+  /* allow multiple processes to use the same port */
+  loop = 1;
+  if (setsockopt(socket_descriptor, SOL_SOCKET, SO_REUSEADDR, &loop, sizeof(loop)) < 0) {
+     perror("setsockopt:SO_REUSEADDR");
+     exit(EXIT_FAILURE);
+  }
+
+  if(bind(socket_descriptor, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
+     perror("bind");
+     exit(EXIT_FAILURE);
+  }
+
+  /* allow multicast on this machine */
+  loop = 1;
+  if (setsockopt(socket_descriptor, IPPROTO_IP, IP_MULTICAST_LOOP, &loop, sizeof(loop)) < 0) {
+     perror("setsockopt:IP_MULTICAST_LOOP");
+     exit(EXIT_FAILURE);
+  }
+
+  /* join the broadcast group: */
+  command.imr_multiaddr.s_addr = inet_addr("224.0.0.1");
+  command.imr_interface.s_addr = htonl(INADDR_ANY);
+  
+  if (setsockopt(socket_descriptor, IPPROTO_IP, IP_ADD_MEMBERSHIP, &command, sizeof(command)) < 0) {
+     perror("setsockopt:IP_ADD_MEMBERSHIP");
+  }
+  
+  return socket_descriptor;
 }
 
-int executeCmd(string cmd) {
-    if(cmd.length() < 1) {
-        std::cout << "statement too short" << std::endl;
-        printInfo();
-        return 1;
-    }
+void printInfo() {
+  std::cout << "try:" << std::endl;
+  std::cout << "single command:" << std::endl;
+  std::cout << current_exec_name << " (gpio) (elro_code):(status [1|0])" << std::endl;
+  std::cout << current_exec_name << " 17 10101A:1" << std::endl;
+  std::cout << std::endl;
+  std::cout << "multicast client (listening on udp port " << port << "):" << std::endl;
+  std::cout << current_exec_name << " (gpio)" << std::endl;
+  std::cout << current_exec_name << " 17" << std::endl;
+}
 
-    vector<string> words = Tools::explode(":", cmd);
-    if(words.size() == 2) {
+int executeCmd(char* cmd_cstring[]) {
+    std::cout << "exec: " << *cmd_cstring << std::endl;
+
+    string cmd = *cmd_cstring;
+        
+    if(cmd.find(':', 0) == string::npos || cmd.length() < 1){
         std::cout << "invalid statement" << std::endl;
-        printInfo();
+        return 1;
+    }
+    
+    vector<string> words = Tools::explode(":", cmd);
+    if(words.size() != 2) {
+        std::cout << "invalid statement" << std::endl;
         return 1;
     }
 
-    int datagpio = atoi(words[0].c_str());
-    string socketcode = words[1];
-    int status = atoi(words[2].c_str());
+    string socketcode = words[0];
+    int status = atoi(words[1].c_str());
 
     PiControl::send433Mhz(datagpio, socketcode, status);
-    std::cout << "set socket " << socketcode << " to " << status << std::endl;
+    std::cout << "set socket (datagpio: " << datagpio << ") " << socketcode << " to " << status << std::endl;
     return 0;
 }
 
-int main( int argc, const char* argv[] )
+int main( int argc, char* argv[] )
 {
   current_exec_name = argv[0]; // Name of the current exec program
 
-  if(argc == 2) {
-    string cmd = argv[1];
-    return executeCmd(cmd);
-  } else {
-    std::cout << "invalid cmd: ";
-    for(int i = 0; i < argc; i++) {
-      std::cout << argv[i] << " ";
-    }
-    std::cout << std::endl;
+  if (argc == 1) {
     printInfo();
     return 1;
   }
+  
+  datagpio = atoi(argv[1]);
+  std::cout << "init datagpio: " << datagpio << std::endl;
+  
+  if(argc == 3) {
+    std::cout << "exec single cmd: " << *argv[2] << std::endl;
+    return executeCmd(&argv[2]);
+  }
+  
+  std::cout << "starting in multicast client mode" << std::endl;
+  
+  int iter = 0;
+  char *buffer = (char*) malloc(BUF);
+  int sin_len;
+  int socket;
+  struct sockaddr_in sin;
+  
+  socket = setup_multicast_socket();
+  
+  /* recive multicast messages */
+  while (1) {
+     iter++;
+     sin_len = sizeof(sin);
+     
+     if (recvfrom(socket, buffer, BUF-1, 0, (struct sockaddr *)&sin, (socklen_t*)&sin_len) == -1) {
+        std::cout << "error recvieving multicast data" << std::endl;
+        std::cout << std::endl;
+        // return 1;
+     }else{
+        std::cout << "recvied cmd (#" << iter << "): " << buffer << std::endl;
+        int ret = executeCmd(&buffer);
+        std::cout << "command #"<< iter << " executed - return value: " << ret << std::endl;
+        std::cout << std::endl;
+     }
+     sleep(2);
+  }
+
+  std::cout << "stopping server mode... (cleaning up)" << std::endl;
+  
+  /* remove multicast-socket from group */
+  if (setsockopt(socket, IPPROTO_IP, IP_DROP_MEMBERSHIP, &command, sizeof(command)) < 0 ) {
+      perror("setsockopt:IP_DROP_MEMBERSHIP");
+  }
+  
+  close(socket);
+
+  std::cout << "bye bye :)" << std::endl;
+  return EXIT_SUCCESS;
 }
