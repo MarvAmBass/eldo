@@ -9,7 +9,7 @@ It uses WiringPi and is available as a static and dynamically linked linux binar
 
 Install the static binary is recommended for the Raspberry Pi
 
-    wget -O eldo https://rawgit.com/MarvAmBass/eldo/master/bin/eldo-static && chmod a+x eldo && sudo mv eldo /bin/eldo
+    wget -O eldo https://github.com/MarvAmBass/eldo/raw/master/bin/eldo-static && chmod a+x eldo && sudo mv eldo /bin/eldo
   
 ## Install a Sender on the Raspberry Pi:
 
@@ -29,13 +29,13 @@ We need to know on which GPIO we connected the DATA Channel to the Sender and th
 
 To turn on the device with the AB440 ID: 11011B after we connected the sender to GPIO 17.
 
-    sudo eldo 17:11011B:1
+    sudo eldo 17 11011B:1
     
 And to turn it off
     
-    sudo eldo 17:11011B:0
+    sudo eldo 17 11011B:0
     
-Syntax:   gpio_number:ab440_code:on_off_integer
+Syntax:   gpio_number ab440_code:on_off_integer
     
 ## Tested with Hardware:
 
