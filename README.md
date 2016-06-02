@@ -13,7 +13,9 @@ It uses WiringPi and is available as a static and dynamically linked linux binar
 
 Install the static binary is recommended for the Raspberry Pi
 
-    wget -O eldo https://github.com/MarvAmBass/eldo/raw/master/bin/eldo-static && chmod a+x eldo && sudo mv eldo /bin/eldo
+    wget -O eldo https://github.com/MarvAmBass/eldo/raw/master/bin/eldo-static &&\
+    chmod a+x eldo &&\
+    sudo mv eldo /bin/eldo
   
 ## Different Modes
 
