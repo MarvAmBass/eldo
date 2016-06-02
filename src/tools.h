@@ -25,10 +25,10 @@ along with PowerPi.  If not, see <http://www.gnu.org/licenses/>.
 #define TOOLS_H
 
 class Tools {
-	public:
-		static std::string convertIntToStr(int);
-		static int convertStrToInt(std::string);
-		static std::vector<std::string> explode(std::string, std::string);
+public:
+  static std::string convertIntToStr(int);
+  static int convertStrToInt(std::string);
+  static std::vector<std::string> explode(std::string, std::string);
 };
 
 #endif

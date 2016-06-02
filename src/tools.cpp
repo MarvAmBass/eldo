@@ -19,48 +19,43 @@ along with PowerPi.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "tools.h"
 
-std::string Tools::convertIntToStr(int Number)
-{
-    std::ostringstream ss;
-    ss << Number;
-    return ss.str();
+std::string Tools::convertIntToStr(int Number) {
+  std::ostringstream ss;
+  ss << Number;
+  return ss.str();
 }
 
-int Tools::convertStrToInt(std::string str)
-{
-    std::stringstream ss(str);
-    int i;
-    ss >> i;
-    return i;
+int Tools::convertStrToInt(std::string str) {
+  std::stringstream ss(str);
+  int i;
+  ss >> i;
+  return i;
 }
 
-std::vector<std::string> Tools::explode(std::string delimiter, std::string str)
-{
-    std::vector<std::string> arr;
+std::vector<std::string> Tools::explode(std::string delimiter,
+                                        std::string str) {
+  std::vector<std::string> arr;
 
-    int strleng = str.length();
-    int delleng = delimiter.length();
-    if (delleng==0)
-        return arr;//no change
+  int strleng = str.length();
+  int delleng = delimiter.length();
+  if (delleng == 0)
+    return arr; // no change
 
-    int i=0;
-    int k=0;
-    while( i<strleng )
+  int i = 0;
+  int k = 0;
+  while (i < strleng) {
+    int j = 0;
+    while (i + j < strleng && j < delleng && str[i + j] == delimiter[j])
+      j++;
+    if (j == delleng) // found delimiter
     {
-        int j=0;
-        while (i+j<strleng && j<delleng && str[i+j]==delimiter[j])
-            j++;
-        if (j==delleng)//found delimiter
-        {
-            arr.push_back(  str.substr(k, i-k) );
-            i+=delleng;
-            k=i;
-        }
-        else
-        {
-            i++;
-        }
+      arr.push_back(str.substr(k, i - k));
+      i += delleng;
+      k = i;
+    } else {
+      i++;
     }
-    arr.push_back(  str.substr(k, i-k) );
-    return arr;
+  }
+  arr.push_back(str.substr(k, i - k));
+  return arr;
 }

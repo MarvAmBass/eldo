@@ -35,17 +35,17 @@ along with PowerPi.  If not, see <http://www.gnu.org/licenses/>.
 // repeat transmission
 #define REPEAT 10
 
-
 #ifndef PICONTROL_H
 #define PICONTROL_H
 
 class PiControl {
-    private:
-        static void sendEther(int, int[]);
-        static void printCode(int[]);
-    public:
-        static void send433Mhz(int, std::string, int);
-        static void writeGpio(int, int);
+private:
+  static void sendEther(int, int[]);
+  static void printCode(int[]);
+
+public:
+  static void send433Mhz(int, std::string, int);
+  static void writeGpio(int, int);
 };
 
 #endif
