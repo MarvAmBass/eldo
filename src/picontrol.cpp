@@ -27,10 +27,11 @@ void PiControl::printCode(int code[]) {
   printf("via Ether\n");
 }
 
-void PiControl::sendEther(int gpio, int code[]) {
-  if (wiringPiSetupGpio() == -1)
-    return;
+void PiControl::initWiring() {
+  wiringPiSetupGpio();
+}
 
+void PiControl::sendEther(int gpio, int code[]) {
   pinMode(gpio, OUTPUT);
 
   int x = 0;
@@ -109,9 +110,6 @@ void PiControl::send433Mhz(int gpio, std::string codeStr, int active) {
 }
 
 void PiControl::writeGpio(int gpio, int status) {
-  if (wiringPiSetupGpio() == -1)
-    return;
-
   pinMode(gpio, OUTPUT);
 
   if (status == 1)

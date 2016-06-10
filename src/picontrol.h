@@ -44,6 +44,7 @@ private:
   static void printCode(int[]);
 
 public:
+  static void initWiring();
   static void send433Mhz(int, std::string, int);
   static void writeGpio(int, int);
 };

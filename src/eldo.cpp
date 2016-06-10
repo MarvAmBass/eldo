@@ -192,6 +192,8 @@ int main(int argc, char *argv[]) {
     return send_multicast(reps, &argv[2]);
   }
 
+  PiControl::initWiring();
+
   /* SINGLE CMD */
   datagpio = atoi(argv[1]);
   std::cout << "init datagpio: " << datagpio << std::endl;
