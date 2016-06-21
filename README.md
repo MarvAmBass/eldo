@@ -11,11 +11,13 @@ It uses WiringPi and is available as a static and dynamically linked linux binar
 
 ## Quick Install (ARM only)
 
-Install the static binary is recommended for the Raspberry Pi
+Install the static binary is recommended for the Raspberry Pi 1
 
-    wget -O eldo https://github.com/MarvAmBass/eldo/raw/master/bin/eldo-static &&\
+    wget -O eldo https://github.com/MarvAmBass/eldo/raw/master/bin/rpi1/eldo-static &&\
     chmod a+x eldo &&\
     sudo mv eldo /bin/eldo
+
+Install wiringPi library and eldo binary for Raspberry Pi 3
   
 ## Different Modes
 
