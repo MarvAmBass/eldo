@@ -229,10 +229,10 @@ int main(int argc, char *argv[]) {
       std::cout << std::endl;
       // return 1;
     } else {
-      syslog(LOG_INFO, "eldo: recvied cmd");
+      syslog(LOG_INFO, "eldo: recvied cmd (#%d): %s", iter, buffer);
       std::cout << "recvied cmd (#" << iter << "): " << buffer << std::endl;
       int ret = executeCmd(&buffer);
-      syslog(LOG_INFO, "eldo: executed cmd - return value: %d", ret);
+      syslog(LOG_INFO, "eldo: executed cmd (#%d) - return value: %d", iter, ret);
       std::cout << "command #" << iter << " executed - return value: " << ret
                 << std::endl;
       std::cout << std::endl;
