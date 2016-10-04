@@ -34,6 +34,8 @@ along with eldo.  If not, see <http://www.gnu.org/licenses/>.
 #include <unistd.h>
 #include <errno.h>
 
+#include <syslog.h>
+
 #include "tools.h"
 #include "picontrol.h"
 
@@ -192,6 +194,7 @@ int main(int argc, char *argv[]) {
     return send_multicast(reps, &argv[2]);
   }
 
+  syslog(LOG_INFO, "eldo: init WiringPi");
   PiControl::initWiring();
 
   /* SINGLE CMD */
@@ -203,6 +206,7 @@ int main(int argc, char *argv[]) {
   }
 
   /* MULTICAST LISTENER */
+  syslog(LOG_INFO, "eldo: starting in multicast listening mode");
   std::cout << "starting in multicast listening mode" << std::endl;
 
   int iter = 0;
@@ -220,12 +224,15 @@ int main(int argc, char *argv[]) {
 
     if (recvfrom(socket, buffer, BUF - 1, 0, (struct sockaddr *)&sin,
                  (socklen_t *)&sin_len) == -1) {
+      syslog(LOG_ERR, "eldo: error recvieving multicast data");
       std::cout << "error recvieving multicast data" << std::endl;
       std::cout << std::endl;
       // return 1;
     } else {
+      syslog(LOG_INFO, "eldo: recvied cmd");
       std::cout << "recvied cmd (#" << iter << "): " << buffer << std::endl;
       int ret = executeCmd(&buffer);
+      syslog(LOG_INFO, "eldo: executed cmd - return value: %d", ret);
       std::cout << "command #" << iter << " executed - return value: " << ret
                 << std::endl;
       std::cout << std::endl;
@@ -233,6 +240,7 @@ int main(int argc, char *argv[]) {
     sleep(2);
   }
 
+  syslog(LOG_INFO, "eldo: stopping server mode... (cleaning up)");
   std::cout << "stopping server mode... (cleaning up)" << std::endl;
 
   // remove multicast-socket from group
@@ -243,6 +251,7 @@ int main(int argc, char *argv[]) {
 
   close(socket);
 
+  syslog(LOG_INFO, "eldo: bye bye");
   std::cout << "bye bye :)" << std::endl;
   return EXIT_SUCCESS;
 }
