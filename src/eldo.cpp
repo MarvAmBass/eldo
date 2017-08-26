@@ -110,6 +110,10 @@ void printInfo() {
             << "):" << std::endl;
   std::cout << current_exec_name << " (gpio)" << std::endl;
   std::cout << current_exec_name << " 17" << std::endl;
+  std::cout << "multicast sender" << std::endl;
+  std::cout << current_exec_name << " send (elro_code):(status [1|0])"
+            << std::endl;
+  std::cout << current_exec_name << " send 10101A:1" << std::endl;
 }
 
 int send_multicast(int reps, char *cmd_cstring[]) {
