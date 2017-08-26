@@ -1,0 +1,8 @@
+[Unit]
+Description=eldo
+
+[Service]
+ExecStart=/usr/bin/eldo <MY_GPIO>
+
+[Install]
+WantedBy=multi-user.target

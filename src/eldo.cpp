@@ -48,6 +48,8 @@ static int port = 2112;
 static char const *ip = "224.0.0.1";
 static struct ip_mreq command;
 
+static int repeat;
+
 string current_exec_name;
 
 static int setup_multicast_socket(void) {
@@ -172,14 +174,26 @@ int executeCmd(char *cmd_cstring[]) {
   string socketcode = words[0];
   int status = atoi(words[1].c_str());
 
-  PiControl::send433Mhz(datagpio, socketcode, status);
-  std::cout << "set socket (datagpio: " << datagpio << ") " << socketcode
-            << " to " << status << std::endl;
+  for(int i = 0; i < repeat; i++) {
+    PiControl::send433Mhz(datagpio, socketcode, status);
+
+    syslog(LOG_INFO, "eldo: send433Mhz");
+    std::cout << "set socket (datagpio: " << datagpio << ") " << socketcode
+              << " to " << status << std::endl;
+  }
+
   return 0;
 }
 
 int main(int argc, char *argv[]) {
   current_exec_name = argv[0]; // Name of the current exec program
+
+  const char* eldo_repeat_env = getenv("ELDO_REPEAT");
+  if (eldo_repeat_env != NULL) {
+    syslog(LOG_INFO, "eldo: found ELDO_REPEAT env");
+    std::cout << "eldo: found ELDO_REPEAT env: " << eldo_repeat_env << std::endl;
+    repeat = atoi(eldo_repeat_env);
+  }
 
   /* INFO */
   if (argc == 1) {
